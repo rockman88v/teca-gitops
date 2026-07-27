@@ -1,0 +1,194 @@
+## Cấu hình một số tham số chính
+# Storage
+# Ingress
+grafana:
+  enabled: true
+  ingress:
+    enabled: true
+    ingressClassName: nginx    
+    hosts:
+      - grafana.vietdevops.com    
+    path: /
+  # persistence:
+  #     enabled: true
+  #     type: sts
+  #     storageClassName: "storageClassName"
+  #     accessModes:
+  #       - ReadWriteOnce
+  #     size: 20Gi
+  #     finalizers:
+  #       - kubernetes.io/pvc-protection
+  adminPassword: prom-operator  
+
+prometheus:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations: {}
+    labels: {}
+    hosts:
+      - prometheus.vietdevops.com
+    paths: 
+     - /
+    pathType: ImplementationSpecific
+  prometheusSpec:
+    nodeSelector: {}  
+    ruleNamespaceSelector: {}
+    ## Example which selects PrometheusRules in namespaces with label "prometheus" set to "somelabel"
+    # ruleNamespaceSelector:
+    #   matchLabels:
+    #     prometheus: somelabel    
+    ruleSelector: {}
+    ## Example which select all PrometheusRules resources
+    ## with label "prometheus" with values any of "example-rules" or "example-rules-2"
+    # ruleSelector:
+    #   matchExpressions:
+    #     - key: prometheus
+    #       operator: In
+    #       values:
+    #         - example-rules
+    #         - example-rules-2    
+    serviceMonitorSelector: {}
+    ## Example which selects ServiceMonitors with label "prometheus" set to "somelabel"
+    # serviceMonitorSelector:
+    #   matchLabels:
+    #     prometheus: somelabel
+
+    ## Namespaces to be selected for ServiceMonitor discovery.
+    ##
+    serviceMonitorNamespaceSelector: {}
+    ## Example which selects ServiceMonitors in namespaces with label "prometheus" set to "somelabel"
+    # serviceMonitorNamespaceSelector:
+    #   matchLabels:
+    #     prometheus: somelabel
+
+    ## If true, a nil or {} value for prometheus.prometheusSpec.podMonitorSelector will cause the
+    ## prometheus resource to be created with selectors based on values in the helm deployment,
+    ## which will also match the podmonitors created
+    ##    
+    replicas: 1    
+    podAntiAffinity: "soft"
+
+    ## If anti-affinity is enabled sets the topologyKey to use for anti-affinity.
+    ## This can be changed to, for example, failure-domain.beta.kubernetes.io/zone
+    ##
+    podAntiAffinityTopologyKey: kubernetes.io/hostname 
+    resources: {}
+    # requests:
+    #   memory: 400Mi       
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: nfs-subdir-delete
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 5Gi    
+
+alertmanager:
+  enabled: true
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - alertmanager.vietdevops.com
+    paths:
+    - /  
+  config:
+    global:
+      resolve_timeout: 5m
+    route:
+      group_by: ['alertname','namespace','job']
+      group_wait: 5s
+      group_interval: 5s
+      repeat_interval: 5m
+      receiver: 'slack-default'
+      routes:      
+      # Platform alerts
+      - receiver: slack-platform
+        group_wait: 10s
+        matchers:
+          - namespace=~"monitoring|demo|logging|kubernetes-dashboard|kube-system|nginx-ingress|storage"
+
+      # Finance alerts
+      - receiver: slack-finance
+        group_wait: 10s
+        matchers:
+          - namespace=~"finance|account"
+    receivers:
+    - name: 'gmail'
+      email_configs:
+      - to: vietdevops@gmail.com
+        from: vietdevops@gmail.com
+        smarthost: smtp.gmail.com:587
+        auth_username: 'vietdevops@gmail.com'
+        auth_identity: 'vietdevops@gmail.com'
+        auth_password: 'XXXXXXXXX'
+    - name: 'slack-default'
+      slack_configs:
+        - api_url: 'https://hooks.slack.com/services/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' # Your webhook URL
+          channel: '#default-alerts' # Your Slack channel name
+          send_resolved: true
+          title: '{{ template "slack.title" . }}'
+          text: '{{ template "slack.text" . }}'
+    - name: 'slack-platform'
+      slack_configs:
+        - api_url: 'https://hooks.slack.com/services/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' # Your webhook URL
+          channel: '#platform-alerts' # Your Slack channel name
+          send_resolved: true
+          title: '{{ template "slack.title" . }}'
+          text: '{{ template "slack.text" . }}'
+    - name: 'slack-finance'
+      slack_configs:
+        - api_url: 'https://hooks.slack.com/services/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' # Your webhook URL
+          channel: '#finance-alerts' # Your Slack channel name
+          send_resolved: true
+          title: '{{ template "slack.title" . }}'
+          text: '{{ template "slack.text" . }}'
+    templates:
+    - '/etc/alertmanager/config/*.tmpl'
+  templateFiles:
+    slack.tmpl: |-
+      {{ define "slack.title" }}
+      {{- if eq .Status "firing" -}}
+      🚨 {{ .CommonLabels.severity | toUpper }} - {{ .CommonLabels.alertname }}
+      {{- else -}}
+      ✅ RESOLVED - {{ .CommonLabels.alertname }}
+      {{- end -}}
+      {{ end }}
+
+      {{ define "slack.text" }}
+      {{- if .CommonAnnotations.summary }}
+      *Summary:* {{ .CommonAnnotations.summary }}
+      {{ end }}
+
+      {{- if .CommonAnnotations.description }}
+      *Description:* {{ .CommonAnnotations.description }}
+      {{ end }}
+
+      {{- if .CommonLabels.namespace }}
+      *Namespace:* `{{ .CommonLabels.namespace }}`
+      {{ end }}
+
+      {{- if .CommonLabels.pod }}
+      *Pod:* `{{ .CommonLabels.pod }}`
+      {{ end }}
+
+      {{- if .CommonLabels.deployment }}
+      *Deployment:* `{{ .CommonLabels.deployment }}`
+      {{ end }}
+
+      {{- if .CommonLabels.instance }}
+      *Instance:* `{{ .CommonLabels.instance }}`
+      {{ end }}
+
+      *Labels*
+      {{ range .CommonLabels.SortedPairs }}
+      • *{{ .Name }}:* `{{ .Value }}`
+      {{ end }}
+
+      {{- if .ExternalURL }}
+
+      <{{ .ExternalURL }}|Open Alertmanager>
+      {{- end }}
+      {{ end }}

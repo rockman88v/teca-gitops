@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: vietdevops-metric-app-alerts
+  labels:
+     release: prometheus-release
+spec:
+  groups:
+  - name: vietdevops-metric-app.rules
+    rules:
+    - alert: HighTotalRequest
+      expr: total_request_total{app="vietdevops", container="vietdevops-metric-app", namespace="demo"} > 10
+      for: 1m  # Cảnh báo sẽ được kích hoạt nếu giá trị lớn hơn 10 trong 5 phút liên tiếp
+      labels:
+        severity: critical
+      annotations:
+        summary: "Total requests for vietdevops-metric-app exceeded threshold"
+        description: "The total request count for the application is greater than 10."

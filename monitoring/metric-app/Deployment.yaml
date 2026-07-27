@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vietdevops-metric-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vietdevops-metric-app
+  template:
+    metadata:
+      labels:
+        app: vietdevops-metric-app
+    spec:
+      containers:
+      - name: vietdevops-metric-app
+        image: rockman88v/metric-app:latest
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vietdevops-metric-service
+  labels:
+    app: vietdevops-metric-app-service
+spec:
+  selector:
+    app: vietdevops-metric-app
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 80
+  type: NodePort

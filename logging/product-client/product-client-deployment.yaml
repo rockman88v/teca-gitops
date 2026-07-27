@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-client
+  labels:
+    app: product-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: product-client
+  template:
+    metadata:
+      labels:
+        app: product-client
+    spec:
+      containers:
+        - name: product-client-container
+          image: rockman88v/product-client
+          ports:
+            - containerPort: 5000
+          env:
+            - name: PRODUCT_APP
+              value: "product-app-service.demo-app"
+            - name: SLEEP_TIME
+              value: "3000"
+      # nodeSelector:
+      #   kubernetes.io/hostname: worker1

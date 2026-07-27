@@ -1,0 +1,53 @@
+logstashPipeline:
+ logstash.conf: |
+   input {
+     beats {
+       port => 5044
+     }
+   }
+   filter {
+     if [kubernetes][deployment][name] == "product-app" {
+       grok {
+         match => {
+           #"message" => 'INFO:product:%{IPORHOST:client_ip} - - \[%{HTTPDATE:timestamp}\] "%{WORD:method} %{URIPATH:apiPath} HTTP/%{NOTSPACE:protocol}" %{NUMBER:responseCode} - %{NUMBER:responseTime:float}ms'
+           "message" => ' %{GREEDYDATA:somemessage} "%{WORD:method} %{URIPATH:apiPath} HTTP/%{NOTSPACE:protocol}" %{NUMBER:responseCode} - %{NUMBER:responseTime:float}ms'
+          }
+        }
+
+       date {
+         match => [ "timestamp", "dd/MMM/yyyy HH:mm:ss" ]
+         target => "@timestamp"
+       }
+      }
+    }
+   output { elasticsearch { hosts => "http://elasticsearch-master:9200" }}
+
+resources:
+  requests:
+    cpu: "300m"
+    memory: "300Mi"
+  limits:
+    cpu: "800m"
+    memory: "1000Mi"
+
+volumeClaimTemplate:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: nfs-subdir-delete
+  resources:
+    requests:
+      storage: 1Gi
+persistence:
+  enabled: true
+
+service:
+  type: ClusterIP
+  # loadBalancerIP: ""
+  ports:
+    - name: beats
+      port: 5044
+      protocol: TCP
+      targetPort: 5044
+  #   - name: http
+  #     port: 8080
+  #     protocol: TCP
+  #     targetPort: 8080
