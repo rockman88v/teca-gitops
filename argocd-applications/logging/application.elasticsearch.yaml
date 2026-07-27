@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: elasticsearch
+  namespace: argocd
+spec:
+  destination:
+    namespace: logging
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    helm:
+      valueFiles:
+      - value-elasticsearch.yaml
+    path: logging/elk-stack/elasticsearch
+    repoURL: https://github.com/rockman88v/teca-gitops.git
+    targetRevision: HEAD

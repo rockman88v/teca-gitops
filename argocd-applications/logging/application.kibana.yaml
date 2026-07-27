@@ -1,0 +1,152 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  creationTimestamp: "2026-07-27T13:54:38Z"
+  generation: 12
+  name: kibana
+  namespace: argocd
+  resourceVersion: "791789"
+  uid: 1a6970de-de3f-4f90-8b6a-4b7a7d282b7c
+spec:
+  destination:
+    namespace: logging
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    helm:
+      valueFiles:
+      - value-kibana.yaml
+    path: logging/elk-stack/kibana
+    repoURL: https://github.com/rockman88v/teca-gitops.git
+    targetRevision: HEAD
+status:
+  controllerNamespace: argocd
+  health:
+    lastTransitionTime: "2026-07-27T13:54:39Z"
+    status: Progressing
+  history:
+  - deployStartedAt: "2026-07-27T14:00:33Z"
+    deployedAt: "2026-07-27T14:00:34Z"
+    id: 0
+    initiatedBy:
+      username: admin
+    revision: 86bd4f241f46c81eede9ee7e67f84f310cc1a397
+    source:
+      helm:
+        valueFiles:
+        - value-kibana.yaml
+      path: logging/elk-stack/kibana
+      repoURL: https://github.com/rockman88v/teca-gitops.git
+      targetRevision: HEAD
+  operationState:
+    finishedAt: "2026-07-27T14:00:34Z"
+    message: successfully synced (all tasks run)
+    operation:
+      initiatedBy:
+        username: admin
+      retry: {}
+      sync:
+        revision: 86bd4f241f46c81eede9ee7e67f84f310cc1a397
+        source:
+          helm:
+            valueFiles:
+            - value-kibana.yaml
+          path: logging/elk-stack/kibana
+          repoURL: https://github.com/rockman88v/teca-gitops.git
+          targetRevision: HEAD
+        syncStrategy:
+          hook: {}
+    phase: Succeeded
+    startedAt: "2026-07-27T14:00:33Z"
+    syncResult:
+      resources:
+      - group: ""
+        hookPhase: Running
+        kind: Service
+        message: 'service/kibana-kibana configured. Warning: resource services/kibana-kibana
+          is missing the kubectl.kubernetes.io/last-applied-configuration annotation
+          which is required by  apply.  apply should only be used on resources created
+          declaratively by either  create --save-config or  apply. The missing annotation
+          will be patched automatically.'
+        name: kibana-kibana
+        namespace: logging
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: apps
+        hookPhase: Running
+        images:
+        - docker.elastic.co/kibana/kibana:7.17.3
+        kind: Deployment
+        message: 'deployment.apps/kibana-kibana configured. Warning: resource deployments/kibana-kibana
+          is missing the kubectl.kubernetes.io/last-applied-configuration annotation
+          which is required by  apply.  apply should only be used on resources created
+          declaratively by either  create --save-config or  apply. The missing annotation
+          will be patched automatically.'
+        name: kibana-kibana
+        namespace: logging
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: networking.k8s.io
+        hookPhase: Running
+        kind: Ingress
+        message: 'ingress.networking.k8s.io/kibana-kibana configured. Warning: resource
+          ingresses/kibana-kibana is missing the kubectl.kubernetes.io/last-applied-configuration
+          annotation which is required by  apply.  apply should only be used on resources
+          created declaratively by either  create --save-config or  apply. The missing
+          annotation will be patched automatically.'
+        name: kibana-kibana
+        namespace: logging
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      revision: 86bd4f241f46c81eede9ee7e67f84f310cc1a397
+      source:
+        helm:
+          valueFiles:
+          - value-kibana.yaml
+        path: logging/elk-stack/kibana
+        repoURL: https://github.com/rockman88v/teca-gitops.git
+        targetRevision: HEAD
+  reconciledAt: "2026-07-27T14:03:10Z"
+  resourceHealthSource: appTree
+  resources:
+  - kind: Service
+    name: kibana-kibana
+    namespace: logging
+    status: Synced
+    version: v1
+  - group: apps
+    kind: Deployment
+    name: kibana-kibana
+    namespace: logging
+    status: Synced
+    version: v1
+  - group: networking.k8s.io
+    kind: Ingress
+    name: kibana-kibana
+    namespace: logging
+    status: Synced
+    version: v1
+  sourceHydrator: {}
+  sourceType: Helm
+  summary:
+    externalURLs:
+    - http://kibana.vietdevops.com/
+    images:
+    - docker.elastic.co/kibana/kibana:7.17.3
+  sync:
+    comparedTo:
+      destination:
+        namespace: logging
+        server: https://kubernetes.default.svc
+      source:
+        helm:
+          valueFiles:
+          - value-kibana.yaml
+        path: logging/elk-stack/kibana
+        repoURL: https://github.com/rockman88v/teca-gitops.git
+        targetRevision: HEAD
+    revision: 86bd4f241f46c81eede9ee7e67f84f310cc1a397
+    status: Synced

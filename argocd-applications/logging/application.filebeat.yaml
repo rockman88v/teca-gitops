@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: filebeat
+  namespace: argocd
+spec:
+  destination:
+    namespace: logging
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    helm:
+      valueFiles:
+      - value-filebeat.yaml
+    path: logging/elk-stack/filebeat
+    repoURL: https://github.com/rockman88v/teca-gitops.git
+    targetRevision: HEAD

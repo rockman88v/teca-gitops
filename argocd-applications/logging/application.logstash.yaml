@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: logstash
+  namespace: argocd
+spec:
+  destination:
+    namespace: logging
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    helm:
+      valueFiles:
+      - value-logstash-by-team-grok.yaml
+    path: logging/elk-stack/logstash
+    repoURL: https://github.com/rockman88v/teca-gitops.git
+    targetRevision: HEAD
